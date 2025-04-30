@@ -29,7 +29,6 @@ void Parallel::parallelizeParticleUpdates(std::vector<Particle>& particles, std:
 
 void Parallel::updateParticles(unsigned int thread_ID, std::vector<Particle>& particles, std::vector<PerlinNoise>& perlin, Circles& circles, const float time, const float dt, const bool reset_particle)
 {
-    // for (unsigned int i = 0; i < m_num_particles; ++i)
     // this ensures the last thread handles any stragglers
     for (
         unsigned int particle_idx = (thread_ID * m_particles_per_thread);
@@ -45,5 +44,7 @@ void Parallel::updateParticles(unsigned int thread_ID, std::vector<Particle>& pa
         // particle.gradVelocity(perlin, time); // boring!
         particle.evolve(dt);
         circles.updatePosition(particle_idx, particle.position());
+        // circles.updateColor(particle_idx, glm::vec3(1.0f - particle.velocity().length() / 3.0f, 0.0f, particle.velocity().length() / 3.0f));
+        // circles.updateAlpha(particle_idx, particle.velocity().length() / 20.0f);
     }
 }

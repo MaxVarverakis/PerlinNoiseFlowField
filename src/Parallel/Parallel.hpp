@@ -11,7 +11,6 @@ private:
     unsigned int m_num_threads;
     unsigned int m_particles_per_thread;
     std::vector<std::thread> m_workers;
-    // const uint8_t m_num_threads { static_cast<uint8_t>(std::thread::hardware_concurrency()) };
 public:
     Parallel(const unsigned int num_particles);
 
