@@ -9,8 +9,8 @@ Particle::Particle(float width, float height, const float radius)
     , m_height { height }
     , m_radius { radius }
 {
-    m_x_dist = std::uniform_real_distribution<float>(0.0f, width);
-    m_y_dist = std::uniform_real_distribution<float>(0.0f, height);
+    // m_x_dist = std::uniform_real_distribution<float>(0.0f, width);
+    // m_y_dist = std::uniform_real_distribution<float>(0.0f, height);
 
     randomizeParticle();
 }
@@ -22,8 +22,8 @@ Particle::Particle(float width, float height, const float radius, const glm::vec
     , m_position { position }
     , m_velocity { velocity }
 {
-    m_x_dist = std::uniform_real_distribution<float>(0.0f, width);
-    m_y_dist = std::uniform_real_distribution<float>(0.0f, height);
+    // m_x_dist = std::uniform_real_distribution<float>(0.0f, width);
+    // m_y_dist = std::uniform_real_distribution<float>(0.0f, height);
 }
 
 void Particle::updatePosition(const float dt)
@@ -40,9 +40,10 @@ void Particle::updateVelocity(const std::vector<PerlinNoise>& perlin, const floa
         // map noise value to angle before adding to nudge
         // [0,1] --> [-1,1] --> [0, 2pi]
         // making sure to scale noise value by octave
-        nudge += 2 * static_cast<float>(M_PI) * (2 * perlin[i].noise(m_position, t) - 1) / (float)(i + 1);
+        // can multiply by 2^n for n = 1, 2, 3, 4, 5, 6 for other cool patterns
+        nudge += 1 * 2 * static_cast<float>(M_PI) * (2 * perlin[i].noise(m_position, t) - 1) / (float)(i + 1);
     }
-    m_velocity += glm::vec2(cos(nudge), sin(nudge));
+    m_velocity += 0.9f * glm::vec2(cos(nudge), sin(nudge));
     m_velocity *= 0.99f; // friction to prevent infinite velocities
 }
 
@@ -84,8 +85,8 @@ void Particle::periodicBoundaries()
 
 void Particle::randomizeParticle()
 {
-    m_position.x = m_x_dist(m_rng);
-    m_position.y = m_y_dist(m_rng);
+    m_position.x = m_width * m_x_dist(m_rng);
+    m_position.y = m_height * m_y_dist(m_rng);
     m_velocity.x = 0.0f;
     m_velocity.y = 0.0f;
 }

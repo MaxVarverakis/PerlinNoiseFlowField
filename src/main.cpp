@@ -30,6 +30,7 @@ const float width { 1280.0f };
 const float height { 768.0f };
 // const unsigned int res { 250 };
 const float REFRESH_ALPHA { 0.025f };
+unsigned int RESET_FRAME_COUNT { 0 };
 
 float GLOBAL_TIME { 0.0f };
 float DT { 0.025f };
@@ -115,7 +116,6 @@ int main()
         // Grid grid(width, height, res, pVec);
         // std::vector<Rectangle> rects;
         // rects.reserve(grid.size());
-
         // const std::vector<Point>& points { grid.points() };
         // const std::vector<float>& values { grid.values() };
         // for (unsigned int i = 0; i < grid.size(); ++i)
@@ -133,7 +133,7 @@ int main()
         {
             const Particle& particle { width, height, 1.0f };
             particles.push_back(particle);
-            circs.emplace_back(Circle(particle.position(), particle.radius(), glm::vec4(1.0f)));
+            circs.emplace_back(Circle(particle.position(), particle.radius(), glm::vec4(glm::vec3(1.0f), 0.1f)));
         }
 
         // Rectangles rectangles(rects);
@@ -216,7 +216,7 @@ int main()
             // evolve time if unpaused
             if (not paused)
             {
-                GLOBAL_TIME += DT;
+                GLOBAL_TIME += DT / 10;
             }
 
             // update z layer if reached the ceiling
@@ -243,7 +243,20 @@ int main()
                 particle.evolve(DT);
                 circles.updatePosition(i, particle.position());
             }
-            if (reset_particles) { reset_particles = false; }
+            if (reset_particles)
+            {
+                RESET_FRAME_COUNT = 2;
+                reset_particles = false;
+            }
+            if (RESET_FRAME_COUNT > 0)
+            {
+                --RESET_FRAME_COUNT;
+                fullScreenShader.bind();
+                fullScreenShader.setUniform4f("uColor", 0.0f, 0.0f, 0.0f, 1.0f);
+                renderer.drawTriangles(FS_VAO, fullScreenShader);
+                fullScreenShader.setUniform4f("uColor", 0.0f, 0.0f, 0.0f, REFRESH_ALPHA);
+                fullScreenShader.unbind();
+            }
 
             // update buffers
             // VBO.updateBuffer(rectangles.m_vertices.data());
