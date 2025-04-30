@@ -28,4 +28,5 @@ public:
     void randomGradients();
     void nextZGradients();
     float noise(const glm::vec2& xy, float z) const;
+    float noise(float x, float y, float z) const;
 };

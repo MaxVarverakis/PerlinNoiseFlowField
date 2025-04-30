@@ -36,6 +36,9 @@ public:
     void randomizeParticle();
     void updatePosition(const float dt);
     void updateVelocity(const std::vector<PerlinNoise>& perlin, const float t);
+    void curlVelocity(const std::vector<PerlinNoise>& perlin, const float t);
+    void gradVelocity(const std::vector<PerlinNoise>& perlin, const float t);
+    void mixVelocity(const std::vector<PerlinNoise>& perlin, const float t);
     void periodicBoundaries();
     void applyBoundaryCondition();
     void outOfBounds();

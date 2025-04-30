@@ -15,6 +15,7 @@
 #include "Point/Point.hpp"
 #include "Grid/Grid.hpp"
 #include "PerlinNoise/PerlinNoise.hpp"
+#include "Parallel/Parallel.hpp"
 
 SDL_Window* window;
 SDL_GLContext gl_context;
@@ -24,7 +25,8 @@ bool paused { true };
 bool reset_particles { false };
 
 unsigned int octaves { 1 };
-unsigned int num_particles { 20000 };
+unsigned int frequency { 5 };
+unsigned int num_particles { 50000 };
 
 const float width { 1280.0f };
 const float height { 768.0f };
@@ -101,6 +103,8 @@ int main()
             return -1;
         }
 
+        std::cout << "Thread count: " << std::thread::hardware_concurrency() << '\n';
+
         GLCall(glEnable(GL_BLEND));
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
@@ -110,7 +114,7 @@ int main()
         pVec.reserve(octaves);
         for (unsigned int i = 1; i < octaves + 1; ++i)
         {
-            pVec.emplace_back(PerlinNoise(width, height, i * 5));
+            pVec.emplace_back(PerlinNoise(width, height, frequency * i));
         }
 
         // Grid grid(width, height, res, pVec);
@@ -125,6 +129,7 @@ int main()
         //     rects.emplace_back(Rectangle(point.position(), width / (res - 1), height / (res - 1), glm::vec4(glm::vec3(val), 1.0f)));
         // }
         
+        Parallel parallel(num_particles);
         std::vector<Particle> particles;
         std::vector<Circle> circs;
         circs.reserve(num_particles);
@@ -233,16 +238,18 @@ int main()
             // rectangles.udpateColors(values);
             // VBO.updateBuffer(rectangles.m_vertices.data());
 
-            // update particles/circles
-            // this is embarrassingly parallelizable
-            for (unsigned int i = 0; i < particles.size(); ++i)
-            {
-                Particle& particle{ particles[i] };
-                if (reset_particles){ particle.randomizeParticle(); }
-                particle.updateVelocity(pVec, GLOBAL_TIME);
-                particle.evolve(DT);
-                circles.updatePosition(i, particle.position());
-            }
+            // update particles/circles in parallel (on CPU)
+            parallel.parallelizeParticleUpdates(particles, pVec, circles, GLOBAL_TIME, DT, reset_particles);
+            // for (unsigned int i = 0; i < particles.size(); ++i)
+            // {
+            //     Particle& particle{ particles[i] };
+            //     if (reset_particles){ particle.randomizeParticle(); }
+            //     particle.curlVelocity(pVec, GLOBAL_TIME);
+            //     // particle.updateVelocity(pVec, GLOBAL_TIME);
+            //     particle.evolve(DT);
+            //     circles.updatePosition(i, particle.position());
+            // }
+            
             if (reset_particles)
             {
                 RESET_FRAME_COUNT = 2;

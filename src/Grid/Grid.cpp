@@ -116,7 +116,7 @@ void Grid::assignValues(const std::vector<PerlinNoise>& perlin, const float t)
         m_values[i] = 0.0f;
         for (unsigned int j = 0; j < perlin.size(); ++j)
         {
-            m_values[i] += 1 / (j + 1) * perlin[j].noise(m_points[i].position(), t);
+            m_values[i] += 2 / (2 * (j + 1)) * perlin[j].noise(m_points[i].position(), t);
         }
     }
 }
@@ -127,7 +127,8 @@ void Grid::createPoints(const float width, const float height)
     const float aspectRatio = width / height;
 
     float dx { width / (m_resolution - 1) };
-    float dy { height / (static_cast<unsigned int>(m_resolution / aspectRatio) - 1) };
+    float dy { height / (m_resolution - 1) };
+    // float dy { height / (static_cast<unsigned int>(m_resolution / aspectRatio) - 1) };
 
     for (unsigned int y_i = 0; y_i < m_resolution; ++y_i)
     {

@@ -1,5 +1,6 @@
 #include "Particle.hpp"
 
+
 std::mt19937 Particle::m_rng(std::random_device{}());
 std::uniform_real_distribution<float> Particle::m_x_dist(0.0f, 1.0f);
 std::uniform_real_distribution<float> Particle::m_y_dist(0.0f, 1.0f);
@@ -33,7 +34,6 @@ void Particle::updatePosition(const float dt)
 
 void Particle::updateVelocity(const std::vector<PerlinNoise>& perlin, const float t)
 {
-    
     float nudge { 0.0f };
     for (unsigned int i = 0; i < perlin.size(); ++i)
     {
@@ -41,10 +41,72 @@ void Particle::updateVelocity(const std::vector<PerlinNoise>& perlin, const floa
         // [0,1] --> [-1,1] --> [0, 2pi]
         // making sure to scale noise value by octave
         // can multiply by 2^n for n = 1, 2, 3, 4, 5, 6 for other cool patterns
-        nudge += 1 * 2 * static_cast<float>(M_PI) * (2 * perlin[i].noise(m_position, t) - 1) / (float)(i + 1);
+        nudge += 1 * 2 * static_cast<float>(M_PI) * (2 * perlin[i].noise(m_position, t) - 1) * 2 / (float)(2 * (i + 1));
     }
+    // increasing the scale factor makes other cool patterns!
+    // m_velocity = 100.0f * glm::vec2(cos(nudge), sin(nudge));
     m_velocity += 0.9f * glm::vec2(cos(nudge), sin(nudge));
     m_velocity *= 0.99f; // friction to prevent infinite velocities
+}
+
+void Particle::curlVelocity(const std::vector<PerlinNoise>& perlin, const float t)
+{
+    
+    float eps { 10.0f };
+    float dx { 0.0f };
+    float dy { 0.0f };
+    float& x { m_position.x };
+    float& y { m_position.y };
+
+    for (unsigned int i = 0; i < perlin.size(); ++i)
+    {
+        dx += (perlin[i].noise(x + eps, y, t) - perlin[i].noise(x - eps, y, t)) * 2 / (float)(2 * (i + 1));
+        dy += (perlin[i].noise(x, y + eps, t) - perlin[i].noise(x, y - eps, t)) * 2 / (float)(2 * (i + 1));
+    }
+    // increasing the scale factor makes other cool patterns!
+    m_velocity = 2500.0f * glm::vec2(-dy, dx);
+    // m_velocity += 100.0f * glm::vec2(-dy, dx);
+    // m_velocity *= 0.9f;
+}
+
+void Particle::gradVelocity(const std::vector<PerlinNoise>& perlin, const float t)
+{
+    
+    float eps { 10.0f };
+    float dx { 0.0f };
+    float dy { 0.0f };
+    float& x { m_position.x };
+    float& y { m_position.y };
+
+    for (unsigned int i = 0; i < perlin.size(); ++i)
+    {
+        dx += (perlin[i].noise(x + eps, y, t) - perlin[i].noise(x - eps, y, t)) * 2 / (float)(2 * (i + 1));
+        dy += (perlin[i].noise(x, y + eps, t) - perlin[i].noise(x, y - eps, t)) * 2 / (float)(2 * (i + 1));
+    }
+    m_velocity = 1000.0f * glm::vec2(dx, dy);
+}
+
+void Particle::mixVelocity(const std::vector<PerlinNoise>& perlin, const float t)
+{
+    float nudge { 0.0f };
+    float r { 0.5f };
+    float eps { 10.0f };
+    float dx { 0.0f };
+    float dy { 0.0f };
+    float& x { m_position.x };
+    float& y { m_position.y };
+
+    for (unsigned int i = 0; i < perlin.size(); ++i)
+    {
+        dx += (perlin[i].noise(x + eps, y, t) - perlin[i].noise(x - eps, y, t)) * 2 / (float)(2 * (i + 1));
+        dy += (perlin[i].noise(x, y + eps, t) - perlin[i].noise(x, y - eps, t)) * 2 / (float)(2 * (i + 1));
+        nudge += 2 * static_cast<float>(M_PI) * (2 * perlin[i].noise(m_position, t) - 1) * 2 / (float)(2 * (i + 1));
+    }
+
+    glm::vec2 curl = glm::vec2(-dy, dx);
+    // glm::vec2 grad = glm::vec2(dx, dy);
+    glm:: vec2 vanilla = glm::vec2(cos(nudge), sin(nudge));
+    m_velocity = 1000.0f * (curl * (1 - r) + r * vanilla / 10.0f);
 }
 
 void Particle::applyBoundaryCondition()
@@ -87,8 +149,8 @@ void Particle::randomizeParticle()
 {
     m_position.x = m_width * m_x_dist(m_rng);
     m_position.y = m_height * m_y_dist(m_rng);
-    m_velocity.x = 0.0f;
-    m_velocity.y = 0.0f;
+    m_velocity.x =  2 * m_x_dist(m_rng) - 1;
+    m_velocity.y =  2 * m_x_dist(m_rng) - 1;
 }
 
 void Particle::outOfBounds()

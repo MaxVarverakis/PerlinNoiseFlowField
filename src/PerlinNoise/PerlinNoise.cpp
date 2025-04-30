@@ -108,5 +108,9 @@ float PerlinNoise::noise(const glm::vec2& xy, float z) const
                 zf
             )
         + 1) / 2;
+}
 
+float PerlinNoise::noise(float x, float y, float z) const
+{
+    return noise(glm::vec2(x, y), z);
 }
