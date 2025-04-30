@@ -2,17 +2,13 @@
 
 
 std::mt19937 Particle::m_rng(std::random_device{}());
-std::uniform_real_distribution<float> Particle::m_x_dist(0.0f, 1.0f);
-std::uniform_real_distribution<float> Particle::m_y_dist(0.0f, 1.0f);
+std::uniform_real_distribution<float> Particle::m_dist(0.0f, 1.0f);
 
 Particle::Particle(float width, float height, const float radius)
     : m_width { width }
     , m_height { height }
     , m_radius { radius }
 {
-    // m_x_dist = std::uniform_real_distribution<float>(0.0f, width);
-    // m_y_dist = std::uniform_real_distribution<float>(0.0f, height);
-
     randomizeParticle();
 }
 
@@ -22,10 +18,7 @@ Particle::Particle(float width, float height, const float radius, const glm::vec
     , m_radius { radius }
     , m_position { position }
     , m_velocity { velocity }
-{
-    // m_x_dist = std::uniform_real_distribution<float>(0.0f, width);
-    // m_y_dist = std::uniform_real_distribution<float>(0.0f, height);
-}
+{}
 
 void Particle::updatePosition(const float dt)
 {
@@ -147,10 +140,10 @@ void Particle::periodicBoundaries()
 
 void Particle::randomizeParticle()
 {
-    m_position.x = m_width * m_x_dist(m_rng);
-    m_position.y = m_height * m_y_dist(m_rng);
-    m_velocity.x =  2 * m_x_dist(m_rng) - 1;
-    m_velocity.y =  2 * m_x_dist(m_rng) - 1;
+    m_position.x = m_width * m_dist(m_rng);
+    m_position.y = m_height * m_dist(m_rng);
+    m_velocity.x =  2 * m_dist(m_rng) - 1;
+    m_velocity.y =  2 * m_dist(m_rng) - 1;
 }
 
 void Particle::outOfBounds()

@@ -18,8 +18,7 @@ private:
 
 public:
     static std::mt19937 m_rng;
-    static std::uniform_real_distribution<float> m_x_dist;
-    static std::uniform_real_distribution<float> m_y_dist;
+    static std::uniform_real_distribution<float> m_dist;
 
     Particle(float width, float height, const float radius);
     Particle(float width, float height, const float radius, const glm::vec2 position, const glm::vec2 velocity);
